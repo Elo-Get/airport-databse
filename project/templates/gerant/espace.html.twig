@@ -1,0 +1,10 @@
+Bienvenue sur l'espace gerant !
+
+{% if app.user %}
+    <h2>Bienvenue {{ app.user.username }}</h2>
+    <p>Vous êtes connecté en tant que gérant.</p>
+    <a href="{{ path('gerant_logout') }}">Se déconnecter</a>
+{% else %}
+    <h2>Veuillez vous connecter</h2>
+    <a href="{{ path('gerant_login') }}">Connexion Gérant</a>
+{% endif %}

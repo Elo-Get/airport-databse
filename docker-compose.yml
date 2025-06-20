@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: symfony_tp_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./docker/postgres/data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - symfony_tp_net
+
+  php:
+    build:
+      context: ./docker/php
+    container_name: symfony_tp_php
+    ports:
+      - "8080:80"
+    volumes:
+      - ./project:/var/www/html
+    networks:
+      - symfony_tp_net
+    depends_on:
+      - postgres
+
+  phpmyadmin:
+    image: dpage/pgadmin4
+    container_name: symfony_tp_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - symfony_tp_net
+
+volumes:
+  pgadmin-data:
+
+networks:
+  symfony_tp_net:

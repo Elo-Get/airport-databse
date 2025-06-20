@@ -1,0 +1,79 @@
+security:
+    # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
+    password_hashers:
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+        App\Entity\CompteVoyageur: 'auto'
+        App\Entity\Gerant: 'auto'
+    # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
+    providers:
+        # used to reload user from session & other features (e.g. switch_user)
+        users_clients:
+            entity:
+                class: App\Entity\CompteVoyageur
+                property: login
+        users_gerants:
+            entity:
+                class: App\Entity\Gerant
+                property: email
+
+        # used to reload user from session & other features (e.g. switch_user)
+    firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+
+        api_login_client:
+            pattern: ^/api/client/login
+            stateless: false
+            json_login:
+                check_path: /api/client/login
+                username_path: login
+                password_path: password
+                success_handler: App\Security\LoginSuccessHandler
+                failure_handler: App\Security\LoginFailureHandler
+                provider: users_clients
+
+        api_login_gerant:
+            pattern: ^/api/gerant/login
+            stateless: false
+            json_login:
+                check_path: /api/gerant/login
+                username_path: email
+                password_path: password
+                success_handler: App\Security\LoginSuccessHandler
+                failure_handler: App\Security\LoginFailureHandler
+                provider: users_gerants
+
+        main:
+            lazy: true
+            stateless: false
+            entry_point: App\Security\CustomEntryPoint
+            logout:
+                path: /api/logout
+                invalidate_session: true
+
+            # activate different ways to authenticate
+            # https://symfony.com/doc/current/security.html#the-firewall
+
+            # https://symfony.com/doc/current/security/impersonating_user.html
+            # switch_user: true
+
+    # Easy way to control access for large sections of your site
+    # Note: Only the *first* access control that matches will be used
+    access_control:
+        - { path: ^/api/client/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api/gerant/login, roles: PUBLIC_ACCESS }
+   
+
+when@test:
+    security:
+        password_hashers:
+            # By default, password hashers are resource intensive and take time. This is
+            # important to generate secure password hashes. In tests however, secure hashes
+            # are not important, waste resources and increase test times. The following
+            # reduces the work factor to the lowest possible values.
+            Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
+                algorithm: auto
+                cost: 4 # Lowest possible value for bcrypt
+                time_cost: 3 # Lowest possible value for argon
+                memory_cost: 10 # Lowest possible value for argon

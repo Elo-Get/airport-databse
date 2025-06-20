@@ -1,0 +1,937 @@
+#[ORM\Entity(repositoryClass: PersonnelRepository::class)]
+class Personnel
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $nom = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $prenom = null;
+
+    #[ORM\Column(type: Types::SIMPLE_ARRAY, enumType: TypePosteEnum::class)]
+    private array $fonction = [];
+
+    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    private ?\DateTime $dateEmbauche = null;
+
+    /**
+     * @var Collection<int, AffectationPersonnel>
+     */
+    #[ORM\ManyToMany(targetEntity: AffectationPersonnel::class, mappedBy: 'personnel')]
+    private Collection $affectationPersonnels;
+
+}
+
+#[ORM\Entity(repositoryClass: CarteFideliteRepository::class)]
+class CarteFidelite
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\ManyToOne(inversedBy: 'carteFidelites')]
+    private ?Client $idClient = null;
+
+    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    private ?\DateTime $dateObtention = null;
+
+}
+#[ORM\Entity(repositoryClass: BilletRepository::class)]
+class Billet
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\ManyToOne(inversedBy: 'vol')]
+    private ?Commande $commande = null;
+
+    #[ORM\ManyToOne(inversedBy: 'client')]
+    private ?Vol $vol = null;
+
+    #[ORM\ManyToOne(inversedBy: 'billets')]
+    private ?Client $client = null;
+
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 0)]
+    private ?string $prixEffectif = null;
+
+    #[ORM\Column(enumType: TypeBilletEnum::class)]
+    private ?TypeBilletEnum $classe = null;
+
+    #[ORM\Column(type: Types::SMALLINT)]
+    private ?int $nbBagagesSoute = null;
+}
+#[ORM\Entity(repositoryClass: VenteRepository::class)]
+class Vente
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\Column]
+    private ?int $mois = null;
+
+    #[ORM\Column]
+    private ?int $annee = null;
+
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 0)]
+    private ?string $chiffreAffaire = null;
+
+}
+#[ORM\Entity(repositoryClass: EscalesRepository::class)]
+class Escales
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    /**
+     * @var Collection<int, Vol>
+     */
+    #[ORM\ManyToMany(targetEntity: Vol::class, inversedBy: 'escales')]
+    private Collection $vol;
+
+    #[ORM\Column]
+    private ?int $dureeEscale = null;
+
+    #[ORM\Column(enumType: VillesDestinationEnum::class)]
+    private ?VillesDestinationEnum $villeEscale = null;
+
+}
+#[ORM\Entity(repositoryClass: VolRepository::class)]
+class Vol
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\ManyToOne(inversedBy: 'vols')]
+    private ?Avion $avion = null;
+
+    #[ORM\Column]
+    private ?\DateTime $dateDepart = null;
+
+    #[ORM\Column]
+    private ?\DateTime $dateArrivee = null;
+
+    #[ORM\Column]
+    private ?int $distanceKm = null;
+
+    #[ORM\Column(enumType: TypeVolEnum::class)]
+    private ?TypeVolEnum $typeVol = null;
+
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 0)]
+    private ?string $prixBase = null;
+
+    #[ORM\Column(enumType: StatutVolEnum::class)]
+    private ?StatutVolEnum $statutVol = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $raisonRetard = null;
+
+    /**
+     * @var Collection<int, Billet>
+     */
+    #[ORM\OneToMany(targetEntity: Billet::class, mappedBy: 'vol')]
+    private Collection $client;
+
+    /**
+     * @var Collection<int, RepasVol>
+     */
+    #[ORM\ManyToMany(targetEntity: RepasVol::class, mappedBy: 'vol')]
+    private Collection $repasVols;
+
+    /**
+     * @var Collection<int, Escales>
+     */
+    #[ORM\ManyToMany(targetEntity: Escales::class, mappedBy: 'vol')]
+    private Collection $escales;
+
+}
+<?php 
+
+
+enum StatutVolEnum: string
+{
+    case A_L_HEURE = 'A_L_HEURE';
+    case RETARDE = 'RETARDE';
+    case ANNULE = 'ANNULE';
+    case EN_COURS = 'EN_COURS';
+    case TERMINE = 'TERMINE';
+
+    public function getLabel(): string
+    {
+        return match ($this) {
+            self::A_L_HEURE => 'À l\'heure',
+            self::RETARDE => 'Retardé',
+            self::ANNULE => 'Annulé',
+            self::EN_COURS => 'En cours',
+            self::TERMINE => 'Terminé',
+        };
+    }
+
+}<?php 
+
+namespace App\Model;
+
+enum TypeBilletEnum: string {
+    case ECO = 'ECO';
+    case BUSINESS = 'BUSINESS';
+    case FIRST = 'PREMIERE';
+    case PREMIUM = 'PREMIUM';
+
+    public function getLabel(): string
+    {
+        return match ($this) {
+            self::ECO => 'Économique',
+            self::BUSINESS => 'Affaires',
+            self::FIRST => 'Première',
+            self::PREMIUM => 'Premium',
+        };
+    }
+}<?php 
+
+namespace App\Model;
+
+enum PaysEnum: string
+{
+    case FRANCE = 'FRANCE';
+    case ALLEMAGNE = 'ALLEMAGNE';
+    case ITALIE = 'ITALIE';
+    case ESPAGNE = 'ESPAGNE';
+    case ROYAUME_UNI = 'ROYAUME_UNI';
+    case BELGIQUE = 'BELGIQUE';
+    case PAYS_BAS = 'PAYS_BAS';
+    case CHINE = 'CHINE';
+    case ETATS_UNIS = 'ETATS_UNIS';
+    case CANADA = 'CANADA';
+    case JAPON = 'JAPON';
+    case INDE = 'INDE';
+    case RUSSIE = 'RUSSIE';
+    case SUISSE = 'SUISSE';
+    case AUTRICHE = 'AUTRICHE';
+    case PORTUGAL = 'PORTUGAL';
+    case GRECE = 'GRECE';
+    case TURQUIE = 'TURQUIE';
+    case AUTRE = 'AUTRE';
+
+    public function getLabel(): string
+    {
+        return match ($this) {
+            self::FRANCE => 'France',
+            self::ALLEMAGNE => 'Allemagne',
+            self::ITALIE => 'Italie',
+            self::ESPAGNE => 'Espagne',
+            self::ROYAUME_UNI => 'Royaume-Uni',
+            self::BELGIQUE => 'Belgique',
+            self::PAYS_BAS => 'Pays-Bas',
+            self::CHINE => 'Chine',
+            self::ETATS_UNIS => 'États-Unis',
+            self::CANADA => 'Canada',
+            self::JAPON => 'Japon',
+            self::INDE => 'Inde',
+            self::RUSSIE => 'Russie',
+            self::SUISSE => 'Suisse',
+            self::AUTRICHE => 'Autriche',
+            self::PORTUGAL => 'Portugal',
+            self::GRECE => 'Grèce',
+            self::TURQUIE => 'Turquie',
+            self::AUTRE => 'Autre',
+        };
+    }
+}
+
+<?php 
+
+namespace App\Model;
+
+enum TypePaiementEnum: string {
+    case CARTE_BANCAIRE = 'CARTE_BANCAIRE';
+    case CHEQUE = 'CHEQUE';
+    case ESPECES = 'ESPECES';
+    case VIREMENT = 'VIREMENT';
+
+    public function getLabel(): string
+    {
+        return match ($this) {
+            self::CARTE_BANCAIRE => 'Carte bancaire',
+            self::CHEQUE => 'Chèque',
+            self::ESPECES => 'Espèces',
+            self::VIREMENT => 'Virement',
+        };
+    }
+}<?php 
+
+namespace App\Model;
+
+enum RolePersonnelEnum: string {
+    case ACCUEIL = 'ACCUEIL';
+    case SERVICE = 'SERVICE';
+    case TECHNICIEN = 'TECHNICIEN';
+    case AUTRE = 'AUTRE';
+
+    public function getLabel(): string
+    {
+        return match ($this) {
+            self::ACCUEIL => 'Accueil',
+            self::SERVICE => 'Service',
+            self::TECHNICIEN => 'Technicien',
+            self::AUTRE => 'Autre',
+        };
+    }
+
+}<?php 
+
+namespace App\Model;
+
+enum TypeAvionEnum: string
+{
+    case A220 = 'A220';
+    case A320 = 'A320';
+    case A330 = 'A330';
+    case A350 = 'A350';
+
+    public function getLabel(): string
+    {
+        return match ($this) {
+            self::A220 => 'Airbus A220',
+            self::A320 => 'Airbus A320',
+            self::A330 => 'Airbus A330',
+            self::A350 => 'Airbus A350',
+        };
+    }
+}<?php 
+
+namespace App\Model;
+
+enum TypeVolEnum: string
+{
+    case COURT = 'COURT';
+    case MOYEN = 'MOYEN';
+    case LONG = 'LONG';
+
+    public function getLabel(): string
+    {
+        return match ($this) {
+            self::COURT => 'Vol court',
+            self::MOYEN => 'Vol moyen',
+            self::LONG => 'Vol long',
+        };
+    }
+
+}<?php 
+
+namespace App\Model;
+
+enum TypeDocVoyageEnum: string
+{
+    case CNI = 'CNI';
+    case PASSEPORT = 'PASSEPORT';
+
+    public function getLabel(): string
+    {
+        return match ($this) {
+            self::CNI => 'Carte Nationale d\'Identité',
+            self::PASSEPORT => 'Passeport',
+        };
+    }
+}<?php 
+
+namespace App\Model;
+
+enum TypeEntretienEnum: string
+{
+    case REPARATION = 'REPARATION';
+    case PEINTURE = 'PEINTURE';
+    case MAINTENANCE = 'MAINTENANCE';
+    case NETTOYAGE = 'NETTOYAGE';
+    case AUTRE = 'AUTRE';
+
+    public function getLabel(): string
+    {
+        return match ($this) {
+            self::REPARATION => 'Réparation',
+            self::PEINTURE => 'Peinture',
+            self::MAINTENANCE => 'Maintenance',
+            self::NETTOYAGE => 'Nettoyage',
+            self::AUTRE => 'Autre',
+        };
+    }
+
+}<?php 
+
+namespace App\Model;
+
+enum VillesDestinationEnum: string
+{
+    case PARIS = 'PARIS';
+    case MARSEILLE = 'MARSEILLE';
+    case LYON = 'LYON';
+    case BORDEAUX = 'BORDEAUX';
+    case NICE = 'NICE';
+    case TOULOUSE = 'TOULOUSE';
+    case NANTES = 'NANTES';
+    case STRASBOURG = 'STRASBOURG';
+    case MONTPELLIER = 'MONTPELLIER';
+    case BARCELONE = 'BARCELONE';
+    case MADRID = 'MADRID';
+    case LONDRES = 'LONDRES';
+    case BERLIN = 'BERLIN';
+    case NEW_YORK = 'NEW_YORK';
+    case TOKYO = 'TOKYO';
+    case DUBAI = 'DUBAI';
+    case BEIJING = 'BEIJING';
+    case SYDNEY = 'SYDNEY';
+    case SAN_FRANCISCO = 'SAN_FRANCISCO';
+    case LOS_ANGELES = 'LOS_ANGELES';
+    case CHICAGO = 'CHICAGO';
+
+    public function getLabel(): string
+    {
+        return match ($this) {
+            self::PARIS => 'Paris',
+            self::MARSEILLE => 'Marseille',
+            self::LYON => 'Lyon',
+            self::BORDEAUX => 'Bordeaux',
+            self::NICE => 'Nice',
+            self::TOULOUSE => 'Toulouse',
+            self::NANTES => 'Nantes',
+            self::STRASBOURG => 'Strasbourg',
+            self::MONTPELLIER => 'Montpellier',
+            self::BARCELONE => 'Barcelone',
+            self::MADRID => 'Madrid',
+            self::LONDRES => 'Londres',
+            self::BERLIN => 'Berlin',
+            self::NEW_YORK => 'New York',
+            self::TOKYO => 'Tokyo',
+            self::DUBAI => 'Dubaï',
+            self::BEIJING => 'Pékin',
+            self::SYDNEY => 'Sydney',
+            self::SAN_FRANCISCO => 'San Francisco',
+            self::LOS_ANGELES => 'Los Angeles',
+            self::CHICAGO => 'Chicago',
+        };
+    }
+
+}<?php 
+
+namespace App\Model;
+
+enum StatutEntretienEnum: string
+{
+    case FAIT = 'FAIT';
+    case A_FAIRE = 'A_FAIRE';
+
+    public function getLabel(): string
+    {
+        return match ($this) {
+            self::FAIT => 'Entretien effectué',
+            self::A_FAIRE => 'Entretien à faire',
+        };
+    }
+
+}<?php 
+
+namespace App\Model;
+
+enum TypePosteEnum: string {
+    case PILOTE = 'PILOTE';
+    case COPILOTE = 'COPILOTE';
+    case CHEF_DE_CABINE = 'CHEF_DE_CABINE';
+    case HOTE = 'HOTE';
+    case HOTESSE = 'HOTESSE';
+    case AUTRE = 'AUTRE';
+
+    public function getLabel(): string
+    {
+        return match ($this) {
+            self::PILOTE => 'Pilote',
+            self::COPILOTE => 'Copilote',
+            self::CHEF_DE_CABINE => 'Chef de cabine',
+            self::HOTE => 'Hôte',
+            self::HOTESSE => 'Hôtesse',
+            self::AUTRE => 'Autre',
+        };
+    }
+}<?php 
+
+namespace App\Model;
+
+enum TypeRepasEnum: string {
+    case PETIT_DEJEUNER = 'PETIT_DEJEUNER';
+    case DEJEUNER = 'DEJEUNER';
+    case DINER = 'DINER';
+
+    public function getLabel(): string
+    {
+        return match ($this) {
+            self::PETIT_DEJEUNER => 'Petit déjeuner',
+            self::DEJEUNER => 'Déjeuner',
+            self::DINER => 'Dîner',
+        };
+    }
+        
+}<?php
+
+namespace App\Entity;
+
+use App\Repository\RepasVolRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\Entity(repositoryClass: RepasVolRepository::class)]
+class RepasVol
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    /**
+     * @var Collection<int, Vol>
+     */
+    #[ORM\ManyToMany(targetEntity: Vol::class, inversedBy: 'repasVols')]
+    private Collection $vol;
+
+    /**
+     * @var Collection<int, Repas>
+     */
+    #[ORM\ManyToMany(targetEntity: Repas::class, inversedBy: 'repasVols')]
+    private Collection $repas;
+
+    #[ORM\Column]
+    private ?int $quantite = null;
+
+    public function __construct()
+    {
+        $this->vol = new ArrayCollection();
+        $this->repas = new ArrayCollection();
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    /**
+     * @return Collection<int, Vol>
+     */
+    public function getVol(): Collection
+    {
+        return $this->vol;
+    }
+
+    public function addVol(Vol $vol): static
+    {
+        if (!$this->vol->contains($vol)) {
+            $this->vol->add($vol);
+        }
+
+        return $this;
+    }
+
+    public function removeVol(Vol $vol): static
+    {
+        $this->vol->removeElement($vol);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Repas>
+     */
+    public function getRepas(): Collection
+    {
+        return $this->repas;
+    }
+
+    public function addRepa(Repas $repa): static
+    {
+        if (!$this->repas->contains($repa)) {
+            $this->repas->add($repa);
+        }
+
+        return $this;
+    }
+
+    public function removeRepa(Repas $repa): static
+    {
+        $this->repas->removeElement($repa);
+
+        return $this;
+    }
+
+    public function getQuantite(): ?int
+    {
+        return $this->quantite;
+    }
+
+    public function setQuantite(int $quantite): static
+    {
+        $this->quantite = $quantite;
+
+        return $this;
+    }
+}
+<?php
+
+namespace App\Entity;
+
+use App\Repository\FactureRepository;
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\Entity(repositoryClass: FactureRepository::class)]
+class Facture
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\OneToOne(cascade: ['persist', 'remove'])]
+    private ?Commande $commande = null;
+
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 0)]
+    private ?string $montantTotal = null;
+
+    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    private ?\DateTime $dateFacture = null;
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getCommande(): ?Commande
+    {
+        return $this->commande;
+    }
+
+    public function setCommande(?Commande $commande): static
+    {
+        $this->commande = $commande;
+
+        return $this;
+    }
+
+    public function getMontantTotal(): ?string
+    {
+        return $this->montantTotal;
+    }
+
+    public function setMontantTotal(string $montantTotal): static
+    {
+        $this->montantTotal = $montantTotal;
+
+        return $this;
+    }
+
+    public function getDateFacture(): ?\DateTime
+    {
+        return $this->dateFacture;
+    }
+
+    public function setDateFacture(\DateTime $dateFacture): static
+    {
+        $this->dateFacture = $dateFacture;
+
+        return $this;
+    }
+}
+<?php
+
+namespace App\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
+use Doctrine\DBAL\Types\Types;
+use App\Model\Enum\TypePaiementEnum;
+use App\Repository\CommandeRepository;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
+
+#[ORM\Entity(repositoryClass: CommandeRepository::class)]
+class Commande
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\ManyToOne(inversedBy: 'commandes')]
+    private ?Client $client = null;
+
+    #[ORM\Column]
+    private ?\DateTime $dateCommande = null;
+
+    #[ORM\Column(enumType: TypePaiementEnum::class)]
+    private ?TypePaiementEnum $moyentPaiement = null;
+
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 0)]
+    private ?string $prixTotal = null;
+
+    #[ORM\Column]
+    private ?bool $assuranceAnnulation = null;
+
+    /**
+     * @var Collection<int, Billet>
+     */
+    #[ORM\OneToMany(targetEntity: Billet::class, mappedBy: 'commande')]
+    private Collection $vol;
+
+   
+}
+<?php
+
+namespace App\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
+use App\Model\Enum\TypeRepasEnum;
+use App\Repository\RepasRepository;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
+
+#[ORM\Entity(repositoryClass: RepasRepository::class)]
+class Repas
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\Column(enumType: TypeRepasEnum::class)]
+    private ?TypeRepasEnum $typeRepas = null;
+
+    /**
+     * @var Collection<int, RepasVol>
+     */
+    #[ORM\ManyToMany(targetEntity: RepasVol::class, mappedBy: 'repas')]
+    private Collection $repasVols;
+
+   
+}
+<?php
+
+namespace App\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
+use Doctrine\DBAL\Types\Types;
+use App\Model\Enum\TypeEntretienEnum;
+use App\Model\Enum\StatutEntretienEnum;
+use App\Repository\EntretienRepository;
+
+#[ORM\Entity(repositoryClass: EntretienRepository::class)]
+class Entretien
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\ManyToOne(inversedBy: 'entretiens')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Avion $avion = null;
+
+    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    private ?\DateTime $dateEntretien = null;
+
+    #[ORM\Column(enumType: TypeEntretienEnum::class)]
+    private ?TypeEntretienEnum $typeEntretien = null;
+
+    #[ORM\Column(enumType: StatutEntretienEnum::class)]
+    private ?StatutEntretienEnum $statutEntretien = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $commentaire = null;
+
+}
+<?php
+
+namespace App\Entity;
+
+use App\Model\Enum\PaysEnum;
+use Doctrine\ORM\Mapping as ORM;
+use App\Model\Enum\TypeVolEnum;
+use App\Repository\AeroportRepository;
+
+#[ORM\Entity(repositoryClass: AeroportRepository::class)]
+class Aeroport
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $nom = null;
+
+    #[ORM\Column(enumType: TypeVolEnum::class)]
+    private ?TypeVolEnum $ville = null;
+
+    #[ORM\Column(enumType: PaysEnum::class)]
+    private ?PaysEnum $pays = null;
+
+   
+}
+<?php
+
+namespace App\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
+use Doctrine\DBAL\Types\Types;
+use App\Repository\CompteVoyageurRepository;
+
+#[ORM\Entity(repositoryClass: CompteVoyageurRepository::class)]
+class CompteVoyageur
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\OneToOne(inversedBy: 'client', cascade: ['persist', 'remove'])]
+    private ?Client $idClient = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $login = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $motDePasse = null;
+
+    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    private ?\DateTime $dateCreation = null;
+
+}
+<?php
+
+namespace App\Entity;
+
+
+#[ORM\Entity(repositoryClass: AffectationPersonnelRepository::class)]
+class AffectationPersonnel
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    /**
+     * @var Collection<int, Personnel>
+     */
+    #[ORM\ManyToMany(targetEntity: Personnel::class, inversedBy: 'affectationPersonnels')]
+    private Collection $personnel;
+
+    #[ORM\Column(enumType: RolePersonnelEnum::class)]
+    private ?RolePersonnelEnum $roleVol = null;
+
+    
+}
+<?php
+
+namespace App\Entity;
+
+
+#[ORM\Entity(repositoryClass: AvionRepository::class)]
+class Avion
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\Column(enumType: TypeAvionEnum::class)]
+    private ?TypeAvionEnum $typeAvion = null;
+
+    #[ORM\Column]
+    private ?int $capacite = null;
+
+    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    private ?\DateTime $dateMiseEnService = null;
+
+    /**
+     * @var Collection<int, Entretien>
+     */
+    #[ORM\OneToMany(targetEntity: Entretien::class, mappedBy: 'avion', orphanRemoval: true)]
+    private Collection $entretiens;
+
+    /**
+     * @var Collection<int, Vol>
+     */
+    #[ORM\OneToMany(targetEntity: Vol::class, mappedBy: 'avion')]
+    private Collection $vols;
+}
+<?php
+
+namespace App\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
+use Doctrine\DBAL\Types\Types;
+use App\Repository\ClientRepository;
+use App\Model\Enum\TypeDocVoyageEnum;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
+
+#[ORM\Entity(repositoryClass: ClientRepository::class)]
+class Client
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $nom = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $prenom = null;
+
+    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    private ?\DateTime $dateNaissance = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $email = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $adressePostale = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $numDocVoyage = null;
+
+    #[ORM\Column(enumType: TypeDocVoyageEnum::class)]
+    private ?TypeDocVoyageEnum $typeDocVoyage = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $nbMiles = 1;
+
+    #[ORM\OneToOne(mappedBy: 'idClient', cascade: ['persist', 'remove'])]
+    private ?CompteVoyageur $login = null;
+
+    /**
+     * @var Collection<int, CarteFidelite>
+     */
+    #[ORM\OneToMany(targetEntity: CarteFidelite::class, mappedBy: 'idClient')]
+    private Collection $carteFidelites;
+
+    /**
+     * @var Collection<int, Commande>
+     */
+    #[ORM\OneToMany(targetEntity: Commande::class, mappedBy: 'client')]
+    private Collection $commandes;
+
+    /**
+     * @var Collection<int, Billet>
+     */
+    #[ORM\OneToMany(targetEntity: Billet::class, mappedBy: 'client')]
+    private Collection $billets;
+
+}

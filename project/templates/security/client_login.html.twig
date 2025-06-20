@@ -1,0 +1,6 @@
+<h1>Connexion Client</h1>
+<form action="{{ path('client_login') }}" method="post">
+    <input type="text" name="_username" placeholder="Login" value="{{ last_username }}" />
+    <input type="password" name="_password" placeholder="Mot de passe" />
+    <button type="submit">Se connecter</button>
+</form>
