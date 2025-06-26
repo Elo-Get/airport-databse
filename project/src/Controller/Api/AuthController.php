@@ -38,6 +38,9 @@ class AuthController extends AbstractController
     {
         // Symfony gère automatiquement l'authentification via json_login
         $user = $this->getUser();
+        if (!$user) {
+            return $this->json(['message' => 'Échec de la connexion'], 401);
+        }
         return $this->json(['message' => 'Client connecté avec succès', 'user' => $user?->getUserIdentifier()]);
     }
 
@@ -66,11 +69,6 @@ class AuthController extends AbstractController
         return $this->json(['message' => 'Gérant connecté avec succès', 'user' => $user?->getUserIdentifier()]);
     }
 
-    #[Route('/api/logout', name: 'api_logout', methods: ['POST'])]
-    public function logout(): void
-    {
-        throw new \Exception('Ce point ne devrait jamais être atteint. Symfony gère la déconnexion.');
-    }
 
     #[Route('/api/me', name: 'api_me', methods: ['GET'])]
     #[OA\Get(
@@ -82,20 +80,16 @@ class AuthController extends AbstractController
     )]
     public function me(TokenStorageInterface $tokenStorage,  Request $request): JsonResponse
     {
-        $token = $tokenStorage->getToken();
-        $user = $token ? $token->getUser() : null;
+        $user = $this->getUser();
 
-        dump($request->cookies->all());
-        dump($this->container->get('session')->all());
-        die();
-
-        if (!$user || !is_object($user)) {
-            return $this->json(['user' => null], 401);
+        if (!$user) {
+            return new JsonResponse(['error' => 'Not authenticated'], 401);
         }
 
-        return $this->json([
+        return new JsonResponse([
             'user' => $user->getUserIdentifier(),
-            'roles' => $user->getRoles()
+            'roles' => $user->getRoles(),
+            'class' => get_class($user),
         ]);
     }
 }
