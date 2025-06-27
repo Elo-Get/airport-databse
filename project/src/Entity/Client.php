@@ -41,7 +41,7 @@ class Client
     #[ORM\Column(nullable: true)]
     private ?int $nbMiles = 1;
 
-    #[ORM\OneToOne(mappedBy: 'idClient', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(mappedBy: 'client', cascade: ['persist', 'remove'])]
     private ?CompteVoyageur $login = null;
 
     /**
@@ -62,11 +62,18 @@ class Client
     #[ORM\OneToMany(targetEntity: Billet::class, mappedBy: 'client')]
     private Collection $billets;
 
+    /**
+     * @var Collection<int, Vol>
+     */
+    #[ORM\ManyToMany(targetEntity: Vol::class, inversedBy: 'clients')]
+    private Collection $vols;
+
     public function __construct()
     {
         $this->carteFidelites = new ArrayCollection();
         $this->commandes = new ArrayCollection();
         $this->billets = new ArrayCollection();
+        $this->vols = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -179,12 +186,12 @@ class Client
     {
         // unset the owning side of the relation if necessary
         if ($login === null && $this->login !== null) {
-            $this->login->setIdClient(null);
+            $this->login->setClient(null);
         }
 
         // set the owning side of the relation if necessary
-        if ($login !== null && $login->getIdClient() !== $this) {
-            $login->setIdClient($this);
+        if ($login !== null && $login->getClient() !== $this) {
+            $login->setClient($this);
         }
 
         $this->login = $login;
@@ -278,6 +285,30 @@ class Client
                 $billet->setClient(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Vol>
+     */
+    public function getVols(): Collection
+    {
+        return $this->vols;
+    }
+
+    public function addVol(Vol $vol): static
+    {
+        if (!$this->vols->contains($vol)) {
+            $this->vols->add($vol);
+        }
+
+        return $this;
+    }
+
+    public function removeVol(Vol $vol): static
+    {
+        $this->vols->removeElement($vol);
 
         return $this;
     }

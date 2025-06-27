@@ -14,6 +14,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
  * @OA\Info(title="API Authentification", version="1.0")
  */
 
+ #[OA\Tag(name: 'Authentification')]
 class AuthController extends AbstractController
 {
     #[Route('/api/client/login', name: 'api_client_login', methods: ['POST'])]

@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\DBAL\Types\Types;
 use App\Model\Enum\TypeEntretienEnum;
@@ -31,6 +33,17 @@ class Entretien
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $commentaire = null;
+
+    /**
+     * @var Collection<int, Personnel>
+     */
+    #[ORM\ManyToMany(targetEntity: Personnel::class, mappedBy: 'entretiens')]
+    private Collection $personnels;
+
+    public function __construct()
+    {
+        $this->personnels = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -93,6 +106,33 @@ class Entretien
     public function setCommentaire(?string $commentaire): static
     {
         $this->commentaire = $commentaire;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Personnel>
+     */
+    public function getPersonnels(): Collection
+    {
+        return $this->personnels;
+    }
+
+    public function addPersonnel(Personnel $personnel): static
+    {
+        if (!$this->personnels->contains($personnel)) {
+            $this->personnels->add($personnel);
+            $personnel->addEntretien($this);
+        }
+
+        return $this;
+    }
+
+    public function removePersonnel(Personnel $personnel): static
+    {
+        if ($this->personnels->removeElement($personnel)) {
+            $personnel->removeEntretien($this);
+        }
 
         return $this;
     }

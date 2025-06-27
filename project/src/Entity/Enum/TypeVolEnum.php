@@ -2,6 +2,14 @@
 
 namespace App\Model\Enum;
 
+use OpenApi\Attributes as OA;
+
+#[OA\Schema(
+    schema: 'TypeVolEnum',
+    type: 'string',
+    enum: ['COURT', 'MOYEN', 'LONG'],
+    description: 'Type de vol (court, moyen ou long)'
+)]
 enum TypeVolEnum: string
 {
     case COURT = 'COURT';

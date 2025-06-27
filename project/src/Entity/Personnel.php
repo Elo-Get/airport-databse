@@ -35,9 +35,30 @@ class Personnel
     #[ORM\ManyToMany(targetEntity: AffectationPersonnel::class, mappedBy: 'personnel')]
     private Collection $affectationPersonnels;
 
+    /**
+     * @var Collection<int, Vol>
+     */
+    #[ORM\ManyToMany(targetEntity: Vol::class, inversedBy: 'personnels')]
+    private Collection $vols;
+
+    /**
+     * @var Collection<int, Repas>
+     */
+    #[ORM\ManyToMany(targetEntity: Repas::class, inversedBy: 'personnels')]
+    private Collection $repas;
+
+    /**
+     * @var Collection<int, Entretien>
+     */
+    #[ORM\ManyToMany(targetEntity: Entretien::class, inversedBy: 'personnels')]
+    private Collection $entretiens;
+
     public function __construct()
     {
         $this->affectationPersonnels = new ArrayCollection();
+        $this->vols = new ArrayCollection();
+        $this->repas = new ArrayCollection();
+        $this->entretiens = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -119,6 +140,78 @@ class Personnel
         if ($this->affectationPersonnels->removeElement($affectationPersonnel)) {
             $affectationPersonnel->removePersonnel($this);
         }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Vol>
+     */
+    public function getVols(): Collection
+    {
+        return $this->vols;
+    }
+
+    public function addVol(Vol $vol): static
+    {
+        if (!$this->vols->contains($vol)) {
+            $this->vols->add($vol);
+        }
+
+        return $this;
+    }
+
+    public function removeVol(Vol $vol): static
+    {
+        $this->vols->removeElement($vol);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Repas>
+     */
+    public function getRepas(): Collection
+    {
+        return $this->repas;
+    }
+
+    public function addRepa(Repas $repa): static
+    {
+        if (!$this->repas->contains($repa)) {
+            $this->repas->add($repa);
+        }
+
+        return $this;
+    }
+
+    public function removeRepa(Repas $repa): static
+    {
+        $this->repas->removeElement($repa);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Entretien>
+     */
+    public function getEntretiens(): Collection
+    {
+        return $this->entretiens;
+    }
+
+    public function addEntretien(Entretien $entretien): static
+    {
+        if (!$this->entretiens->contains($entretien)) {
+            $this->entretiens->add($entretien);
+        }
+
+        return $this;
+    }
+
+    public function removeEntretien(Entretien $entretien): static
+    {
+        $this->entretiens->removeElement($entretien);
 
         return $this;
     }

@@ -25,9 +25,16 @@ class Repas
     #[ORM\ManyToMany(targetEntity: RepasVol::class, mappedBy: 'repas')]
     private Collection $repasVols;
 
+    /**
+     * @var Collection<int, Personnel>
+     */
+    #[ORM\ManyToMany(targetEntity: Personnel::class, mappedBy: 'repas')]
+    private Collection $personnels;
+
     public function __construct()
     {
         $this->repasVols = new ArrayCollection();
+        $this->personnels = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -69,6 +76,33 @@ class Repas
     {
         if ($this->repasVols->removeElement($repasVol)) {
             $repasVol->removeRepa($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Personnel>
+     */
+    public function getPersonnels(): Collection
+    {
+        return $this->personnels;
+    }
+
+    public function addPersonnel(Personnel $personnel): static
+    {
+        if (!$this->personnels->contains($personnel)) {
+            $this->personnels->add($personnel);
+            $personnel->addRepa($this);
+        }
+
+        return $this;
+    }
+
+    public function removePersonnel(Personnel $personnel): static
+    {
+        if ($this->personnels->removeElement($personnel)) {
+            $personnel->removeRepa($this);
         }
 
         return $this;

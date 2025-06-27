@@ -55,6 +55,14 @@ security:
 
     access_control:
         - { path: ^/api/doc, roles: PUBLIC_ACCESS }
+
+        - { path: ^/api/client, roles: ROLE_CLIENT }
+
+
         - { path: ^/api/client/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api/client/register, roles: PUBLIC_ACCESS }
+
+        - { path: ^/api/gerant/login, roles: PUBLIC_ACCESS }
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
+
 

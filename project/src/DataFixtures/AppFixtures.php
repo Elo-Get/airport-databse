@@ -16,6 +16,7 @@ use App\Entity\Commande;
 use App\Entity\RepasVol;
 use App\Entity\Entretien;
 use App\Entity\Personnel;
+use App\Model\Enum\PaysEnum;
 use App\Entity\CarteFidelite;
 use App\Entity\CompteVoyageur;
 use App\Model\Enum\TypeVolEnum;
@@ -38,6 +39,20 @@ class AppFixtures extends Fixture
     public function load(ObjectManager $om): void
     {
         
+
+        // Quelques aeroports
+        $aeroports = [];
+        foreach (VillesDestinationEnum::cases() as $ville) {
+
+            // Pays est une enum de 
+
+            $aeroport = (new Aeroport())
+                ->setNom("Aéroport de {$ville->value}")
+                ->setVille($ville)
+                ->setPays(PaysEnum::cases()[array_rand(PaysEnum::cases())]);
+            $om->persist($aeroports[] = $aeroport);
+        }
+
         // 1. Quelques avions
         $avions = [];
         foreach ([TypeAvionEnum::A220, TypeAvionEnum::A320, TypeAvionEnum::A350] as $type) {
@@ -133,6 +148,8 @@ class AppFixtures extends Fixture
                     ->setTypeVol(TypeVolEnum::cases()[rand(0,2)])
                     ->setPrixBase(rand(50,1000))
                     ->setStatutVol(StatutVolEnum::cases()[rand(0,4)])
+                    ->setAeroportDepart($aeroports[array_rand($aeroports)])
+                    ->setAeroportArrive($aeroports[array_rand($aeroports)])
                     ->setRaisonRetard(rand(0,4)==1 ? 'Météo' : null);
                 $om->persist($vol);
                 $vols[] = $vol;

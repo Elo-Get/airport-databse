@@ -17,3 +17,16 @@ nelmio_api_doc:
             - ^/api/client/login_check
             - ^/api/gerant/login_check
             - ^/api(?!/doc$) # Accepts routes under /api except /api/doc
+    # models:
+    #     names:
+    #         - { alias: Vol, type: App\Entity\Vol }
+    #         - { alias: Client, type: App\Entity\Client }
+    #         - { alias: Gerant, type: App\Entity\Gerant }
+    #         - { alias: Aeroport, type: App\Entity\Aeroport }
+    #         - { alias: Avion, type: App\Entity\Avion }
+            
+
+    #         # Enums
+    #         - { alias: TypeVolEnum, type: App\Entity\Enum\TypeVolEnum }
+    #         - { alias: StatutVolEnum, type: App\Entity\Enum\StatutVolEnum }
+

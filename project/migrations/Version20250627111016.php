@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20250614173652 extends AbstractMigration
+final class Version20250627111016 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -58,6 +58,15 @@ final class Version20250614173652 extends AbstractMigration
         SQL);
         $this->addSql(<<<'SQL'
             CREATE TABLE client (id SERIAL NOT NULL, nom VARCHAR(255) NOT NULL, prenom VARCHAR(255) NOT NULL, date_naissance DATE NOT NULL, email VARCHAR(255) NOT NULL, adresse_postale TEXT DEFAULT NULL, num_doc_voyage VARCHAR(255) NOT NULL, type_doc_voyage VARCHAR(255) NOT NULL, nb_miles INT DEFAULT NULL, PRIMARY KEY(id))
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE TABLE client_vol (client_id INT NOT NULL, vol_id INT NOT NULL, PRIMARY KEY(client_id, vol_id))
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE INDEX IDX_2EF8044F19EB6921 ON client_vol (client_id)
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE INDEX IDX_2EF8044F9F2BFB7A ON client_vol (vol_id)
         SQL);
         $this->addSql(<<<'SQL'
             CREATE TABLE commande (id SERIAL NOT NULL, client_id INT DEFAULT NULL, date_commande TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, moyent_paiement VARCHAR(255) NOT NULL, prix_total NUMERIC(10, 0) NOT NULL, assurance_annulation BOOLEAN NOT NULL, PRIMARY KEY(id))
@@ -111,6 +120,33 @@ final class Version20250614173652 extends AbstractMigration
             COMMENT ON COLUMN personnel.fonction IS '(DC2Type:simple_array)'
         SQL);
         $this->addSql(<<<'SQL'
+            CREATE TABLE personnel_vol (personnel_id INT NOT NULL, vol_id INT NOT NULL, PRIMARY KEY(personnel_id, vol_id))
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE INDEX IDX_42FB6A5B1C109075 ON personnel_vol (personnel_id)
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE INDEX IDX_42FB6A5B9F2BFB7A ON personnel_vol (vol_id)
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE TABLE personnel_repas (personnel_id INT NOT NULL, repas_id INT NOT NULL, PRIMARY KEY(personnel_id, repas_id))
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE INDEX IDX_8F1A3A0D1C109075 ON personnel_repas (personnel_id)
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE INDEX IDX_8F1A3A0D1D236AAA ON personnel_repas (repas_id)
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE TABLE personnel_entretien (personnel_id INT NOT NULL, entretien_id INT NOT NULL, PRIMARY KEY(personnel_id, entretien_id))
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE INDEX IDX_2D4512DE1C109075 ON personnel_entretien (personnel_id)
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE INDEX IDX_2D4512DE548DCEA2 ON personnel_entretien (entretien_id)
+        SQL);
+        $this->addSql(<<<'SQL'
             CREATE TABLE repas (id SERIAL NOT NULL, type_repas VARCHAR(255) NOT NULL, PRIMARY KEY(id))
         SQL);
         $this->addSql(<<<'SQL'
@@ -138,10 +174,16 @@ final class Version20250614173652 extends AbstractMigration
             CREATE TABLE vente (id SERIAL NOT NULL, mois INT NOT NULL, annee INT NOT NULL, chiffre_affaire NUMERIC(10, 0) NOT NULL, PRIMARY KEY(id))
         SQL);
         $this->addSql(<<<'SQL'
-            CREATE TABLE vol (id SERIAL NOT NULL, avion_id INT DEFAULT NULL, date_depart TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, date_arrivee TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, distance_km INT NOT NULL, type_vol VARCHAR(255) NOT NULL, prix_base NUMERIC(10, 0) NOT NULL, statut_vol VARCHAR(255) NOT NULL, raison_retard TEXT DEFAULT NULL, PRIMARY KEY(id))
+            CREATE TABLE vol (id SERIAL NOT NULL, avion_id INT DEFAULT NULL, aeroport_depart_id INT NOT NULL, aeroport_arrive_id INT NOT NULL, date_depart TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, date_arrivee TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, distance_km INT NOT NULL, type_vol VARCHAR(255) NOT NULL, prix_base NUMERIC(10, 0) NOT NULL, statut_vol VARCHAR(255) NOT NULL, raison_retard TEXT DEFAULT NULL, PRIMARY KEY(id))
         SQL);
         $this->addSql(<<<'SQL'
             CREATE INDEX IDX_95C97EB80BBB841 ON vol (avion_id)
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE INDEX IDX_95C97EBE3CBAF6E ON vol (aeroport_depart_id)
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE INDEX IDX_95C97EBB9CBD76D ON vol (aeroport_arrive_id)
         SQL);
         $this->addSql(<<<'SQL'
             ALTER TABLE affectation_personnel_personnel ADD CONSTRAINT FK_150B25DD3CFA254C FOREIGN KEY (affectation_personnel_id) REFERENCES affectation_personnel (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE
@@ -162,6 +204,12 @@ final class Version20250614173652 extends AbstractMigration
             ALTER TABLE carte_fidelite ADD CONSTRAINT FK_64AD2B2D99DED506 FOREIGN KEY (id_client_id) REFERENCES client (id) NOT DEFERRABLE INITIALLY IMMEDIATE
         SQL);
         $this->addSql(<<<'SQL'
+            ALTER TABLE client_vol ADD CONSTRAINT FK_2EF8044F19EB6921 FOREIGN KEY (client_id) REFERENCES client (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE client_vol ADD CONSTRAINT FK_2EF8044F9F2BFB7A FOREIGN KEY (vol_id) REFERENCES vol (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE
+        SQL);
+        $this->addSql(<<<'SQL'
             ALTER TABLE commande ADD CONSTRAINT FK_6EEAA67D19EB6921 FOREIGN KEY (client_id) REFERENCES client (id) NOT DEFERRABLE INITIALLY IMMEDIATE
         SQL);
         $this->addSql(<<<'SQL'
@@ -180,6 +228,24 @@ final class Version20250614173652 extends AbstractMigration
             ALTER TABLE facture ADD CONSTRAINT FK_FE86641082EA2E54 FOREIGN KEY (commande_id) REFERENCES commande (id) NOT DEFERRABLE INITIALLY IMMEDIATE
         SQL);
         $this->addSql(<<<'SQL'
+            ALTER TABLE personnel_vol ADD CONSTRAINT FK_42FB6A5B1C109075 FOREIGN KEY (personnel_id) REFERENCES personnel (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE personnel_vol ADD CONSTRAINT FK_42FB6A5B9F2BFB7A FOREIGN KEY (vol_id) REFERENCES vol (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE personnel_repas ADD CONSTRAINT FK_8F1A3A0D1C109075 FOREIGN KEY (personnel_id) REFERENCES personnel (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE personnel_repas ADD CONSTRAINT FK_8F1A3A0D1D236AAA FOREIGN KEY (repas_id) REFERENCES repas (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE personnel_entretien ADD CONSTRAINT FK_2D4512DE1C109075 FOREIGN KEY (personnel_id) REFERENCES personnel (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE personnel_entretien ADD CONSTRAINT FK_2D4512DE548DCEA2 FOREIGN KEY (entretien_id) REFERENCES entretien (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE
+        SQL);
+        $this->addSql(<<<'SQL'
             ALTER TABLE repas_vol_vol ADD CONSTRAINT FK_AFA9244DF6DDA6F5 FOREIGN KEY (repas_vol_id) REFERENCES repas_vol (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE
         SQL);
         $this->addSql(<<<'SQL'
@@ -194,11 +260,20 @@ final class Version20250614173652 extends AbstractMigration
         $this->addSql(<<<'SQL'
             ALTER TABLE vol ADD CONSTRAINT FK_95C97EB80BBB841 FOREIGN KEY (avion_id) REFERENCES avion (id) NOT DEFERRABLE INITIALLY IMMEDIATE
         SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE vol ADD CONSTRAINT FK_95C97EBE3CBAF6E FOREIGN KEY (aeroport_depart_id) REFERENCES aeroport (id) NOT DEFERRABLE INITIALLY IMMEDIATE
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE vol ADD CONSTRAINT FK_95C97EBB9CBD76D FOREIGN KEY (aeroport_arrive_id) REFERENCES aeroport (id) NOT DEFERRABLE INITIALLY IMMEDIATE
+        SQL);
     }
 
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
+        $this->addSql(<<<'SQL'
+            CREATE SCHEMA public
+        SQL);
         $this->addSql(<<<'SQL'
             ALTER TABLE affectation_personnel_personnel DROP CONSTRAINT FK_150B25DD3CFA254C
         SQL);
@@ -216,6 +291,12 @@ final class Version20250614173652 extends AbstractMigration
         SQL);
         $this->addSql(<<<'SQL'
             ALTER TABLE carte_fidelite DROP CONSTRAINT FK_64AD2B2D99DED506
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE client_vol DROP CONSTRAINT FK_2EF8044F19EB6921
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE client_vol DROP CONSTRAINT FK_2EF8044F9F2BFB7A
         SQL);
         $this->addSql(<<<'SQL'
             ALTER TABLE commande DROP CONSTRAINT FK_6EEAA67D19EB6921
@@ -236,6 +317,24 @@ final class Version20250614173652 extends AbstractMigration
             ALTER TABLE facture DROP CONSTRAINT FK_FE86641082EA2E54
         SQL);
         $this->addSql(<<<'SQL'
+            ALTER TABLE personnel_vol DROP CONSTRAINT FK_42FB6A5B1C109075
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE personnel_vol DROP CONSTRAINT FK_42FB6A5B9F2BFB7A
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE personnel_repas DROP CONSTRAINT FK_8F1A3A0D1C109075
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE personnel_repas DROP CONSTRAINT FK_8F1A3A0D1D236AAA
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE personnel_entretien DROP CONSTRAINT FK_2D4512DE1C109075
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE personnel_entretien DROP CONSTRAINT FK_2D4512DE548DCEA2
+        SQL);
+        $this->addSql(<<<'SQL'
             ALTER TABLE repas_vol_vol DROP CONSTRAINT FK_AFA9244DF6DDA6F5
         SQL);
         $this->addSql(<<<'SQL'
@@ -249,6 +348,12 @@ final class Version20250614173652 extends AbstractMigration
         SQL);
         $this->addSql(<<<'SQL'
             ALTER TABLE vol DROP CONSTRAINT FK_95C97EB80BBB841
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE vol DROP CONSTRAINT FK_95C97EBE3CBAF6E
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE vol DROP CONSTRAINT FK_95C97EBB9CBD76D
         SQL);
         $this->addSql(<<<'SQL'
             DROP TABLE aeroport
@@ -270,6 +375,9 @@ final class Version20250614173652 extends AbstractMigration
         SQL);
         $this->addSql(<<<'SQL'
             DROP TABLE client
+        SQL);
+        $this->addSql(<<<'SQL'
+            DROP TABLE client_vol
         SQL);
         $this->addSql(<<<'SQL'
             DROP TABLE commande
@@ -294,6 +402,15 @@ final class Version20250614173652 extends AbstractMigration
         SQL);
         $this->addSql(<<<'SQL'
             DROP TABLE personnel
+        SQL);
+        $this->addSql(<<<'SQL'
+            DROP TABLE personnel_vol
+        SQL);
+        $this->addSql(<<<'SQL'
+            DROP TABLE personnel_repas
+        SQL);
+        $this->addSql(<<<'SQL'
+            DROP TABLE personnel_entretien
         SQL);
         $this->addSql(<<<'SQL'
             DROP TABLE repas

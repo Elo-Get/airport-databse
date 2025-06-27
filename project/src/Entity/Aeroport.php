@@ -3,9 +3,11 @@
 namespace App\Entity;
 
 use App\Model\Enum\PaysEnum;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use App\Model\Enum\TypeVolEnum;
 use App\Repository\AeroportRepository;
+use App\Model\Enum\VillesDestinationEnum;
 
 #[ORM\Entity(repositoryClass: AeroportRepository::class)]
 class Aeroport
@@ -18,11 +20,22 @@ class Aeroport
     #[ORM\Column(length: 255)]
     private ?string $nom = null;
 
-    #[ORM\Column(enumType: TypeVolEnum::class)]
-    private ?TypeVolEnum $ville = null;
+    #[ORM\Column(enumType: VillesDestinationEnum::class)]
+    private ?VillesDestinationEnum $ville = null;
 
     #[ORM\Column(enumType: PaysEnum::class)]
     private ?PaysEnum $pays = null;
+
+    /**
+     * @var Collection<int, Vol>
+     */
+    #[ORM\OneToMany(targetEntity: Vol::class, mappedBy: 'aeroportDepart')]
+    private Collection $vols;
+
+    public function __construct()
+    {
+        $this->vols = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -41,12 +54,12 @@ class Aeroport
         return $this;
     }
 
-    public function getVille(): ?TypeVolEnum
+    public function getVille(): ?VillesDestinationEnum
     {
         return $this->ville;
     }
 
-    public function setVille(TypeVolEnum $ville): static
+    public function setVille(VillesDestinationEnum $ville): static
     {
         $this->ville = $ville;
 
@@ -61,6 +74,36 @@ class Aeroport
     public function setPays(PaysEnum $pays): static
     {
         $this->pays = $pays;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Vol>
+     */
+    public function getVols(): Collection
+    {
+        return $this->vols;
+    }
+
+    public function addVol(Vol $vol): static
+    {
+        if (!$this->vols->contains($vol)) {
+            $this->vols->add($vol);
+            $vol->setAeroportDepart($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVol(Vol $vol): static
+    {
+        if ($this->vols->removeElement($vol)) {
+            // set the owning side to null (unless already changed)
+            if ($vol->getAeroportDepart() === $this) {
+                $vol->setAeroportDepart(null);
+            }
+        }
 
         return $this;
     }
